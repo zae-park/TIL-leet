@@ -20,7 +20,8 @@ jobs:
 
     - name: Add cookies.json for LeetCode CLI login
       run: |
-        echo "${{ secrets.LEETCODE_COOKIES }}" | base64 --decode > ~/.leetcode/cookies.json
+        mkdir -p ~/.leetcode  # .leetcode 디렉토리 생성
+        echo "${{ secrets.LEETCODE_COOKIES }}" | base64 --decode > ~/.leetcode/cookies.json  # cookies.json 저장
       env:
         LEETCODE_COOKIES: ${{ secrets.LEETCODE_COOKIES }}
 
