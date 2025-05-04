@@ -25,6 +25,12 @@ jobs:
       env:
         LEETCODE_COOKIES: ${{ secrets.LEETCODE_COOKIES }}
 
+    - name: Log in to LeetCode using cookies
+      run: |
+        echo "Logging in to LeetCode using cookies..."
+        leetcode user --login-with-cookies
+      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
+
     - name: Fetch list of solved problems
       run: |
         echo "Fetching solved problems..."
