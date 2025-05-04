@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub PAT를 사용하여 레포지토리 접근
+          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub PAT 사용
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,14 +31,14 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --local user.name ${{ secrets.GIT_USER_NAME }}
-          git config --local user.email ${{ secrets.GIT_USER_EMAIL }}
+          git config --local user.name "${{ secrets.GIT_USER_NAME }}"
+          git config --local user.email "${{ secrets.GIT_USER_EMAIL }}"
           git add -A
           if git diff-index --quiet HEAD; then
             echo "No new changes to commit."
           else
             git commit -m "chore: sync LeetCode solutions"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/zae-park/TIL-leet.git
+            git push https://x-access-token:${{ secrets.LEETCODE_PAT }}@github.com/${{ github.repository }}.git
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub PAT를 사용하여 푸시
+          LEETCODE_PAT: ${{ secrets.LEETCODE_PAT }}  # PAT 사용
