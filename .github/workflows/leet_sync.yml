@@ -31,6 +31,10 @@ jobs:
         leetcode list --status=solved --json > solved_problems.json  # 풀었던 문제 목록을 JSON으로 저장
       continue-on-error: false  # 문제 목록 추출 실패 시 워크플로우 중단
 
+    - name: Debug solved_problems.json
+      run: |
+        cat solved_problems.json  # JSON 파일 출력하여 확인
+
     - name: Read solved problem IDs
       id: read_solved
       run: |
@@ -44,8 +48,8 @@ jobs:
 
     - name: Compare and commit new problems
       run: |
-        # JSON 파일에서 문제 ID 추출
-        NEW_PROBLEMS=$(jq -r '.[] | .id' solved_problems.json)
+        # JSON 파일에서 문제 ID 추출, NULL 값을 제외하고 처리
+        NEW_PROBLEMS=$(jq -r '.[] | select(.id != null) | .id' solved_problems.json)
         echo "Fetched new problem IDs: $NEW_PROBLEMS"
         
         # 기존에 풀었던 문제 ID가 기록된 파일을 읽어서 새로 풀었던 문제만 비교
