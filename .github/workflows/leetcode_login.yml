@@ -31,7 +31,16 @@ jobs:
       run: |
         echo "Logging in to LeetCode using cookies..."
         leetcode user --login-with-cookies  # 쿠키를 사용하여 로그인
-      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
+      continue-on-error: true  # 로그인 실패 시 워크플로우가 멈추지 않도록 설정
+
+    - name: Handle login failure
+      run: |
+        if [ $? -ne 0 ]; then
+          echo "Login failed. Fetching new session..."
+          # 새로운 로그인 세션을 fetch하거나, 로그인 시도
+          leetcode user --login-with-github  # GitHub을 사용하여 재로그인
+        fi
+      continue-on-error: false  # 로그인 실패 시 워크플로우가 멈추도록 설정
 
     - name: Verify LeetCode login status
       run: |
