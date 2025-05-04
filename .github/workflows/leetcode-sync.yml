@@ -24,7 +24,7 @@ jobs:
 
       - name: Run LeetCode sync script
         run: |
-          leetcode-export --cookies "${{ secrets.LEETCODE_SESSION }}" --only-accepted --only-last-submission --language=python --problem-folder-name "${difficulty}/${title_slug}"
+          leetcode-export --cookies "csrftoken=${{ secrets.CSRF_TOKEN }};LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}" --only-accepted --only-last-submission --language=python --problem-folder-name "${difficulty}/${title_slug}"
         env:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}  # LeetCode 세션 쿠키
           CSRF_TOKEN: ${{ secrets.CSRF_TOKEN }}  # CSRF 토큰
