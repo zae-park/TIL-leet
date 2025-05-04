@@ -1,0 +1,44 @@
+name: LeetCode Sync
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 매일 자정 UTC에 실행
+  workflow_dispatch:  # 수동으로 실행할 수 있는 옵션
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}  # GitHub PAT를 사용하여 레포지토리 접근
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install requirements
+        run: pip install requests leetcode-export  # 필요한 패키지 설치
+
+      - name: Run LeetCode sync script
+        run: |
+          leetcode-export --cookies "${{ secrets.LEETCODE_SESSION }}" --only-accepted --only-last-submission --language=python --problem-folder-name "${difficulty}/${title_slug}"
+        env:
+          LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}  # LeetCode 세션 쿠키
+          CSRF_TOKEN: ${{ secrets.CSRF_TOKEN }}  # CSRF 토큰
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "LeetCode Sync Bot"
+          git config --local user.email "actions@github.com"
+          git add -A
+          if git diff-index --quiet HEAD; then
+            echo "No new changes to commit."
+          else
+            git commit -m "chore: sync LeetCode solutions"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}  # GitHub PAT를 사용하여 푸시
