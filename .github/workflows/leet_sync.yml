@@ -1,0 +1,39 @@
+name: LeetCode Solver
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 매일 1시에 실행
+  workflow_dispatch:
+
+jobs:
+  solve_leetcode:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js and install leetcode-cli
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - run: npm install -g leetcode-cli
+
+    - name: Log in to LeetCode using GitHub
+      run: leetcode user --login-with-github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Solve LeetCode problem (예시: Bubble Sort)
+      run: leetcode submit --file solutions/bubble-sort.py --language python3 --id 1
+
+    - name: Commit and Push solution
+      run: |
+        mkdir -p problems/algorithm/sorting/easy/1_bubble-sort
+        cp solutions/bubble-sort.py problems/algorithm/sorting/easy/1_bubble-sort/solution.py
+        git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
+        git config --global user.name "${{ secrets.GIT_USER_NAME }}"
+        git add .
+        git commit -m "Add solution for Bubble Sort problem"
+        git push origin main
+      env:
+        GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
