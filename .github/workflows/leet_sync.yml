@@ -3,37 +3,67 @@ name: LeetCode Solver
 on:
   schedule:
     - cron: '0 1 * * *'  # 매일 1시에 실행
-  workflow_dispatch:
+  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
   solve_leetcode:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2  # 레포지토리 코드를 가져옴
 
     - name: Set up Node.js and install leetcode-cli
       uses: actions/setup-node@v2
       with:
         node-version: '16'
-    - run: npm install -g leetcode-cli
+    - run: npm install -g leetcode-cli  # LeetCode CLI 설치
 
     - name: Log in to LeetCode using GitHub
-      run: leetcode user --login-with-github
+      run: leetcode user --login-with-github  # GitHub 계정으로 로그인
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub Token 사용
 
-    - name: Solve LeetCode problem (예시: Bubble Sort)
-      run: leetcode submit --file solutions/bubble-sort.py --language python3 --id 1
+    - name: Fetch list of solved problems
+      run: leetcode list --status=solved --json > solved_problems.json  # 풀었던 문제 목록을 JSON으로 저장
 
-    - name: Commit and Push solution
+    - name: Read solved problem IDs
+      id: read_solved
       run: |
-        mkdir -p problems/algorithm/sorting/easy/1_bubble-sort
-        cp solutions/bubble-sort.py problems/algorithm/sorting/easy/1_bubble-sort/solution.py
-        git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
-        git config --global user.name "${{ secrets.GIT_USER_NAME }}"
-        git add .
-        git commit -m "Add solution for Bubble Sort problem"
+        # 기존에 풀었던 문제들의 ID를 기록한 파일을 읽어서 비교
+        git fetch
+        if [ -f solved_problems.txt ]; then
+          cat solved_problems.txt
+        else
+          echo "No solved problems yet."
+        fi
+      continue-on-error: true  # 파일이 없다면 그냥 넘어가도록 설정
+
+    - name: Compare and commit new problems
+      run: |
+        NEW_PROBLEMS=$(jq -r '.[] | .id' solved_problems.json)  # JSON 파일에서 문제 ID 추출
+        echo "Fetched new problem IDs: $NEW_PROBLEMS"
+        
+        # 기존에 풀었던 문제 ID가 기록된 파일을 읽어서 새로 풀었던 문제만 비교
+        COMMITTED_PROBLEMS=$(cat solved_problems.txt)
+        echo "Previously committed problems: $COMMITTED_PROBLEMS"
+        
+        for PROBLEM_ID in $NEW_PROBLEMS; do
+          # 이미 기록된 문제는 건너뜀
+          if echo "$COMMITTED_PROBLEMS" | grep -q "$PROBLEM_ID"; then
+            echo "Problem $PROBLEM_ID already solved, skipping..."
+          else
+            # 새로 푼 문제에 대해 커밋 및 푸시 작업
+            echo "Committing new solution for problem $PROBLEM_ID"
+            mkdir -p problems/algorithm/sorting/easy/$PROBLEM_ID
+            cp $(leetcode show --id $PROBLEM_ID --file) problems/algorithm/sorting/easy/$PROBLEM_ID/solution.py  # 풀이 코드 복사
+            git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
+            git config --global user.name "${{ secrets.GIT_USER_NAME }}"
+            git add .
+            git commit -m "Add solution for problem $PROBLEM_ID"
+            echo "$PROBLEM_ID" >> solved_problems.txt  # 새로 푼 문제 ID를 기록
+          fi
+        done
+
         git push origin main
       env:
         GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
