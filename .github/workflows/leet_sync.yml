@@ -18,13 +18,11 @@ jobs:
         node-version: '16'
     - run: npm install -g leetcode-cli  # LeetCode CLI 설치
 
-    - name: Log in to LeetCode using GitHub
+    - name: Add cookies.json for LeetCode CLI login
       run: |
-        echo "Logging in to LeetCode..."
-        leetcode user --login-with-github
+        echo "${{ secrets.LEETCODE_COOKIES }}" | base64 --decode > ~/.leetcode/cookies.json
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub Token 사용
-      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
+        LEETCODE_COOKIES: ${{ secrets.LEETCODE_COOKIES }}
 
     - name: Fetch list of solved problems
       run: |
