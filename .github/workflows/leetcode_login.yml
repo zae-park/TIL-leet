@@ -1,0 +1,40 @@
+name: LeetCode Login
+
+on:
+  workflow_dispatch:  # 수동 실행 가능
+  schedule:
+    - cron: '0 1 * * *'  # 매일 1시에 실행
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # 레포지토리 코드를 가져옴
+
+    - name: Set up Node.js and install leetcode-cli
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - run: npm install -g leetcode-cli  # LeetCode CLI 설치
+
+    - name: Add cookies.json for LeetCode CLI login
+      run: |
+        mkdir -p ~/.leetcode  # .leetcode 디렉토리 생성
+        echo "${{ secrets.LEETCODE_COOKIES }}" | base64 --decode > ~/.leetcode/cookies.json  # cookies.json 저장
+        cat ~/.leetcode/cookies.json  # 파일 출력하여 확인
+      env:
+        LEETCODE_COOKIES: ${{ secrets.LEETCODE_COOKIES }}
+
+    - name: Log in to LeetCode using cookies
+      run: |
+        echo "Logging in to LeetCode using cookies..."
+        leetcode user --login-with-cookies  # 쿠키를 사용하여 로그인
+      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
+
+    - name: Verify LeetCode login status
+      run: |
+        echo "Verifying login status..."
+        leetcode user  # 로그인 상태를 확인하는 명령어
+      continue-on-error: false  # 로그인 확인 실패 시 워크플로우 중단
