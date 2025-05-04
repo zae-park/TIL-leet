@@ -19,28 +19,34 @@ jobs:
     - run: npm install -g leetcode-cli  # LeetCode CLI 설치
 
     - name: Log in to LeetCode using GitHub
-      run: leetcode user --login-with-github  # GitHub 계정으로 로그인
+      run: |
+        echo "Logging in to LeetCode..."
+        leetcode user --login-with-github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub Token 사용
+      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
 
     - name: Fetch list of solved problems
-      run: leetcode list --status=solved --json > solved_problems.json  # 풀었던 문제 목록을 JSON으로 저장
+      run: |
+        echo "Fetching solved problems..."
+        leetcode list --status=solved --json > solved_problems.json  # 풀었던 문제 목록을 JSON으로 저장
+      continue-on-error: false  # 문제 목록 추출 실패 시 워크플로우 중단
 
     - name: Read solved problem IDs
       id: read_solved
       run: |
         # 기존에 풀었던 문제들의 ID를 기록한 파일을 읽어서 비교
-        git fetch
         if [ -f solved_problems.txt ]; then
           cat solved_problems.txt
         else
-          echo "No solved problems yet."
+          echo "No solved problems yet." > solved_problems.txt
         fi
       continue-on-error: true  # 파일이 없다면 그냥 넘어가도록 설정
 
     - name: Compare and commit new problems
       run: |
-        NEW_PROBLEMS=$(jq -r '.[] | .id' solved_problems.json)  # JSON 파일에서 문제 ID 추출
+        # JSON 파일에서 문제 ID 추출
+        NEW_PROBLEMS=$(jq -r '.[] | .id' solved_problems.json)
         echo "Fetched new problem IDs: $NEW_PROBLEMS"
         
         # 기존에 풀었던 문제 ID가 기록된 파일을 읽어서 새로 풀었던 문제만 비교
