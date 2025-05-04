@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_PAT }}  # GitHub PAT를 사용하여 레포지토리 접근
+          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub PAT를 사용하여 레포지토리 접근
 
       - name: Set up Python
         uses: actions/setup-python@v4
