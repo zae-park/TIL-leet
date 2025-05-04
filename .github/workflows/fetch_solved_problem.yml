@@ -2,7 +2,7 @@ name: Fetch Solved Problems
 
 on:
   workflow_run:
-    workflows: ["LeetCode Login"]  # 로그인 워크플로우가 성공적으로 완료된 후 실행
+    workflows: ["LeetCode Login with GitHub Token"]  # 로그인 워크플로우가 성공적으로 완료된 후 실행
     types:
       - completed
 

@@ -1,4 +1,4 @@
-name: LeetCode Login
+name: LeetCode Login with GitHub Token
 
 on:
   workflow_dispatch:  # 수동 실행 가능
@@ -19,28 +19,11 @@ jobs:
         node-version: '16'
     - run: npm install -g leetcode-cli  # LeetCode CLI 설치
 
-    - name: Add cookies.json for LeetCode CLI login
+    - name: Login with GitHub Personal Access Token
       run: |
-        mkdir -p ~/.leetcode  # .leetcode 디렉토리 생성
-        echo "${{ secrets.LEETCODE_COOKIES }}" | base64 --decode > ~/.leetcode/cookies.json  # cookies.json 저장
-        cat ~/.leetcode/cookies.json  # 파일 출력하여 확인
-      env:
-        LEETCODE_COOKIES: ${{ secrets.LEETCODE_COOKIES }}
-
-    - name: Log in to LeetCode using cookies
-      run: |
-        echo "Logging in to LeetCode using cookies..."
-        leetcode user --login-with-cookies  # 쿠키를 사용하여 로그인
-      continue-on-error: true  # 로그인 실패 시 워크플로우가 멈추지 않도록 설정
-
-    - name: Handle login failure
-      run: |
-        if [ $? -ne 0 ]; then
-          echo "Login failed. Fetching new session..."
-          # 새로운 로그인 세션을 fetch하거나, 로그인 시도
-          leetcode user --login-with-github  # GitHub을 사용하여 재로그인
-        fi
-      continue-on-error: false  # 로그인 실패 시 워크플로우가 멈추도록 설정
+        echo "Logging in to LeetCode using GitHub Personal Access Token..."
+        leetcode user --login-with-github-token ${{ secrets.GITHUB_TOKEN }}  # GitHub 토큰을 사용하여 로그인
+      continue-on-error: false  # 로그인 실패 시 워크플로우 중단
 
     - name: Verify LeetCode login status
       run: |
