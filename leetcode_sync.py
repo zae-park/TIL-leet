@@ -9,7 +9,6 @@ CSRF_TOKEN = os.getenv('CSRF_TOKEN')
 if not LEETCODE_SESSION or not CSRF_TOKEN:
     raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
 
-
 # `leetcode-export` 명령어 실행 예시 (자동화된 풀이 코드 가져오기)
 def sync_leetcode_problems():
     languages = ['python', 'mysql', 'pythondata']
@@ -23,7 +22,6 @@ def sync_leetcode_problems():
         os.system(
             f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language={language} --problem-folder-name '{language_dir}'")
 
-
 # 디렉토리 구조 생성 함수
 def create_directory_structure(language, difficulty, problem_id, title_slug):
     """
@@ -34,14 +32,19 @@ def create_directory_structure(language, difficulty, problem_id, title_slug):
         os.makedirs(directory_name)
     return directory_name
 
-
 def save_problem_description_and_solution(language, difficulty, problem_id, title_slug):
     """
-    문제 풀이 파일만 해당 디렉토리 구조로 저장
-    description.md는 제외
+    문제 설명과 해결책을 해당 디렉토리 구조로 저장
     """
     # 문제 디렉토리 생성
     directory_name = create_directory_structure(language, difficulty, problem_id, title_slug)
+
+    # 문제 설명 저장 (description.md) 제거
+    # description_path = os.path.join(directory_name, 'description.md')
+    # description_response = requests.get(f'https://leetcode.com/problems/{title_slug}/description/')
+    # description_text = description_response.text
+    # with open(description_path, 'w', encoding='utf-8') as f:
+    #     f.write(description_text)
 
     # 문제 풀이 파일 (예: python 문제는 solution.py로 저장)
     solution_path = os.path.join(directory_name, f'solution.{language}')
@@ -56,7 +59,6 @@ def save_problem_description_and_solution(language, difficulty, problem_id, titl
 # 문제 동기화 실행
 sync_leetcode_problems()
 
-
 # 예시로 각 문제에 대한 메타정보 가져오기
 def get_metadata_for_problem(problem_id, title_slug):
     metadata_url = f"https://leetcode.com/api/problems/all/"
@@ -66,7 +68,6 @@ def get_metadata_for_problem(problem_id, title_slug):
     for problem in data['stat_status_pairs']:
         if problem['stat']['question_id'] == problem_id:
             difficulty = problem['difficulty']['level']
-            print(difficulty)
             return difficulty  # 1: easy, 2: medium, 3: hard
     return 'medium'  # 기본값
 
@@ -82,24 +83,14 @@ def sync_all_problems():
             continue
 
         for problem in problem_list:
-            # .md 파일만 처리하도록 수정
-            if not problem.endswith('.md'):
-                continue
-
-            # 문제 ID와 제목을 파일명에서 추출
-            try:
-                problem_parts = problem.split('-')
-                if len(problem_parts) >= 2:
-                    problem_id = problem_parts[0]
-                    title_slug = '-'.join(problem_parts[1:]).replace('.md', '')
-                    difficulty = get_metadata_for_problem(problem_id, title_slug)
-                    save_problem_description_and_solution(language, difficulty, problem_id, title_slug)
-                else:
+            if problem.endswith('.md'):  # 문제 메타파일만 처리
+                try:
+                    problem_id, title_slug = problem.split('-')
+                except ValueError:
                     print(f"Skipping invalid file name: {problem}")
-            except Exception as e:
-                print(f"Error processing problem {problem}: {e}")
-                continue
-
+                    continue
+                difficulty = get_metadata_for_problem(problem_id, title_slug)
+                save_problem_description_and_solution(language, difficulty, problem_id, title_slug)
 
 # 동기화 실행
 sync_all_problems()
