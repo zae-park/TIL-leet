@@ -1,7 +1,5 @@
 import os
 import subprocess
-import requests
-from bs4 import BeautifulSoup
 
 # GitHub Secrets에서 세션 쿠키와 토큰을 환경 변수로 받기
 LEETCODE_SESSION = os.getenv('LEETCODE_SESSION')
@@ -11,22 +9,33 @@ if not LEETCODE_SESSION or not CSRF_TOKEN:
     raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
 
 
-# `leetcode-export` 명령어 실행 예시 (자동화된 풀이 코드 가져오기)
 def sync_leetcode_problems():
-    # Python, SQL 문제만 가져오기
-    os.system(
-        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=python --problem-folder-name 'algorithm/dynamic_programming'")
-    os.system(
-        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=mysql --problem-folder-name 'database/sql'")
-    os.system(
-        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=nosql --problem-folder-name 'database/nosql'")
+    # Python과 SQL 문제만 가져오기
+    categories = ['python', 'mysql']
+    subcategories = ['algorithm/dynamic_programming', 'database/sql', 'database/nosql']
+
+    for category, subcategory in zip(categories, subcategories):
+        # 문제 동기화
+        command = [
+            "leetcode-export",
+            "--cookies", f"csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}",
+            "--only-accepted",
+            "--only-last-submission",
+            "--language", category,
+            "--problem-folder-name", subcategory
+        ]
+
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Error occurred while syncing {category}: {result.stderr}")
+        else:
+            print(f"Successfully synced {category} problems")
 
 
 def create_directory_structure(category, subcategory, difficulty, title_slug, problem_id, problem_name):
     """
     디렉토리 이름 포맷: `root-{category}/{subcategory}/{difficulty}/{problem_id}_{title_slug}`
     """
-    # 폴더 구조 생성: `category/subcategory/difficulty/problem_name`
     directory_name = f"root/{category}/{subcategory}/{difficulty}/{problem_id}_{title_slug}"
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
@@ -55,7 +64,6 @@ def save_problem_description_and_solution(problem_name, title_slug, category, su
     solution_path = os.path.join(directory_name, f'solution.{category}')
 
     # 예시로 solution 파일을 저장하는 부분
-    # 실제로 leetcode-export를 통해 풀은 코드가 자동으로 저장됩니다
     os.system(
         f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language={category} --problem-folder-name {directory_name}"
     )
