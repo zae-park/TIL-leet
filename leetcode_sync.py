@@ -12,11 +12,11 @@ if not LEETCODE_SESSION or not CSRF_TOKEN:
 
 # `leetcode-export` 명령어 실행 예시 (자동화된 풀이 코드 가져오기)
 def sync_leetcode_problems():
-    # Pandas 문제는 pythondata로 처리 (pythondata는 pandas로 풀이한 문제)
+    # Pandas 문제는 python으로 처리
     os.system(
-        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=pythondata --problem-folder-name 'root/easy/pandas'")
+        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=python --problem-folder-name 'root/easy/pandas'")
 
-    # SQL 문제는 mysql로 처리 (mysql은 database로 분류)
+    # SQL 문제는 mysql로 처리
     os.system(
         f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=mysql --problem-folder-name 'root/easy/database/sql'")
 
