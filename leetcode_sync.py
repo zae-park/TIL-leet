@@ -89,13 +89,20 @@ def sync_all_problems():
             continue
 
         for problem in problem_list:
+            # 문제 디렉토리 내 파일을 처리하도록 수정 (파일 이름 규칙을 수정할 필요가 있음)
             try:
-                problem_id, title_slug = problem.split('-')
-            except ValueError:
-                print(f"Skipping invalid file name: {problem}")
+                # 문제 ID와 제목을 파일명에서 추출하도록 변경
+                problem_parts = problem.split('-')
+                if len(problem_parts) >= 2:
+                    problem_id = problem_parts[0]
+                    title_slug = '-'.join(problem_parts[1:])
+                    difficulty = get_metadata_for_problem(problem_id, title_slug)
+                    save_problem_description_and_solution(language, difficulty, problem_id, title_slug)
+                else:
+                    print(f"Skipping invalid file name: {problem}")
+            except Exception as e:
+                print(f"Error processing problem {problem}: {e}")
                 continue
-            difficulty = get_metadata_for_problem(problem_id, title_slug)
-            save_problem_description_and_solution(language, difficulty, problem_id, title_slug)
 
 
 # 동기화 실행
