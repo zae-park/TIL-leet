@@ -1,7 +1,6 @@
 import os
 import subprocess
 import requests
-import json
 
 # GitHub Secrets에서 세션 쿠키와 토큰을 환경 변수로 받기
 LEETCODE_SESSION = os.getenv('LEETCODE_SESSION')
@@ -15,9 +14,14 @@ if not LEETCODE_SESSION or not CSRF_TOKEN:
 def sync_leetcode_problems():
     languages = ['python', 'mysql', 'pythondata']
 
+    # 각 언어에 대한 디렉토리 생성
     for language in languages:
+        language_dir = f"root/{language}"
+        if not os.path.exists(language_dir):
+            os.makedirs(language_dir)
+
         os.system(
-            f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language={language} --problem-folder-name 'root/{language}'")
+            f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language={language} --problem-folder-name '{language_dir}'")
 
 
 # 디렉토리 구조 생성 함수
@@ -87,4 +91,3 @@ def sync_all_problems():
 
 # 동기화 실행
 sync_all_problems()
-
