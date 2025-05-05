@@ -38,7 +38,7 @@ jobs:
             echo "No new changes to commit."
           else
             git commit -m "chore: sync LeetCode solutions"
-            git push
+            git push https://x-access-token:${{ secrets.LEETCODE_PAT }}@github.com/${{ github.repository }}.git
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LEETCODE_PAT: ${{ secrets.LEETCODE_PAT }}  # PAT 사용
