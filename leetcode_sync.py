@@ -37,19 +37,11 @@ def create_directory_structure(language, difficulty, problem_id, title_slug):
 
 def save_problem_description_and_solution(language, difficulty, problem_id, title_slug):
     """
-    문제 설명과 해결책을 해당 디렉토리 구조로 저장
+    문제 풀이 파일만 해당 디렉토리 구조로 저장
+    description.md는 제외
     """
     # 문제 디렉토리 생성
     directory_name = create_directory_structure(language, difficulty, problem_id, title_slug)
-
-    # 문제 설명 저장 (description.md)
-    problem_description_url = f'https://leetcode.com/problems/{title_slug}/description/'
-    description_response = requests.get(problem_description_url)
-    description_text = description_response.text  # 텍스트 추출
-
-    description_path = os.path.join(directory_name, 'description.md')
-    with open(description_path, 'w', encoding='utf-8') as f:
-        f.write(description_text)
 
     # 문제 풀이 파일 (예: python 문제는 solution.py로 저장)
     solution_path = os.path.join(directory_name, f'solution.{language}')
@@ -74,6 +66,7 @@ def get_metadata_for_problem(problem_id, title_slug):
     for problem in data['stat_status_pairs']:
         if problem['stat']['question_id'] == problem_id:
             difficulty = problem['difficulty']['level']
+            print(difficulty)
             return difficulty  # 1: easy, 2: medium, 3: hard
     return 'medium'  # 기본값
 
