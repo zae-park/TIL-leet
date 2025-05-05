@@ -30,6 +30,9 @@ jobs:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}  # LeetCode 세션 쿠키
           CSRF_TOKEN: ${{ secrets.CSRF_TOKEN }}  # CSRF 토큰
 
+      - name: Pull remote changes
+        run: git pull origin main
+
       - name: Commit and push changes
         run: |
           git config --local user.name "${{ secrets.GIT_USER_NAME }}"
