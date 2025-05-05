@@ -18,7 +18,7 @@ def sync_leetcode_problems():
         dir_path = f"{root_dir}/{lang}"
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
-        os.system(f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --only-last-submission --language=python --problem-folder-name '{dir_path}'")
+        os.system(f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --language={lang} --problem-folder-name '{dir_path}'")
 
 # 문제 동기화 실행
 sync_leetcode_problems()
