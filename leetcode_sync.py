@@ -82,9 +82,18 @@ def get_metadata_for_problem(problem_id, title_slug):
 def sync_all_problems():
     languages = ['python', 'mysql', 'pythondata']
     for language in languages:
-        problem_list = os.listdir(f"root/{language}")  # 해당 언어의 문제 목록을 가져옴
+        try:
+            problem_list = os.listdir(f"root/{language}")  # 해당 언어의 문제 목록을 가져옴
+        except FileNotFoundError:
+            print(f"Error: {language} directory not found. Skipping.")
+            continue
+
         for problem in problem_list:
-            problem_id, title_slug = problem.split('-')
+            try:
+                problem_id, title_slug = problem.split('-')
+            except ValueError:
+                print(f"Skipping invalid file name: {problem}")
+                continue
             difficulty = get_metadata_for_problem(problem_id, title_slug)
             save_problem_description_and_solution(language, difficulty, problem_id, title_slug)
 
