@@ -9,7 +9,7 @@ if not LEETCODE_SESSION or not CSRF_TOKEN:
     raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
 
 root_dir = "my_solutions"
-if not os.path.exists(dir_path):
+if not os.path.exists(root_dir):
     os.makedirs(root_dir)
 
 # `leetcode-export` 명령어 실행 예시 (자동화된 풀이 코드 가져오기)
