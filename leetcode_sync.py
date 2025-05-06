@@ -1,6 +1,5 @@
 import os
-import subprocess
-import json
+import shutil
 from pathlib import Path
 
 LEETCODE_SESSION = os.getenv("LEETCODE_SESSION")
@@ -9,49 +8,53 @@ CSRF_TOKEN = os.getenv("CSRF_TOKEN")
 if not LEETCODE_SESSION or not CSRF_TOKEN:
     raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
 
-root_dir = "my_solutions"
+# 원시 export 폴더
+raw_dir = Path("leetcode_raw_export")
+if raw_dir.exists():
+    shutil.rmtree(raw_dir)
+raw_dir.mkdir()
 
-# debug.log 초기화
-with open("debug.log", "w"):
-    pass
+# export 실행 (언어 필터 없음)
+os.system(
+    f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' "
+    f"--only-accepted --folder {raw_dir}"
+)
 
-def sync_all_accepted_problems():
-    temp_output = "submissions.json"
-    cmd = (
-        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' "
-        f"--only-accepted --format=json --output={temp_output}"
-    )
-    result = os.system(cmd)
-    if result != 0 or not os.path.exists(temp_output):
-        raise RuntimeError("Failed to export LeetCode problems")
+# 최종 목적지
+root_dir = Path("my_solutions")
 
-    with open(temp_output, "r", encoding="utf-8") as f:
-        submissions = json.load(f)
-
-    for sub in submissions:
-        lang = sub["lang"]
-        ext = lang_to_extension(lang)
-        if not ext:
-            print(f"Skipping unsupported language: {lang}")
+def restructure_exports():
+    for problem_folder in raw_dir.iterdir():
+        if not problem_folder.is_dir():
             continue
 
-        qid = sub.get("frontendQuestionId") or sub.get("questionFrontendId") or "unknown"
-        title_slug = sub["titleSlug"]
-        folder_name = f"{qid}-{title_slug}"
+        # 메타 파일에서 id, slug 추출
+        meta_file = problem_folder / "meta.json"
+        if not meta_file.exists():
+            print(f"Skipping {problem_folder}, no meta.json found.")
+            continue
 
-        dir_path = Path(root_dir) / lang / folder_name
-        dir_path.mkdir(parents=True, exist_ok=True)
+        import json
+        with open(meta_file, encoding="utf-8") as f:
+            meta = json.load(f)
 
-        with open(dir_path / "description.md", "w", encoding="utf-8") as f:
-            f.write(sub.get("translatedContent") or sub.get("content") or "")
+        qid = meta.get("questionFrontendId", "unknown")
+        slug = meta.get("titleSlug", problem_folder.name)
+        lang = meta.get("lang", "unknown").lower()
+        ext = lang_to_extension(lang)
 
-        with open(dir_path / f"solution.{ext}", "w", encoding="utf-8") as f:
-            f.write(sub["code"])
+        if not ext:
+            print(f"Unsupported language: {lang} for {qid}-{slug}")
+            continue
 
-        print(f"Saved: {folder_name} ({lang})")
+        new_path = root_dir / lang / f"{qid}-{slug}"
+        new_path.mkdir(parents=True, exist_ok=True)
 
-    os.remove(temp_output)
+        # 파일 복사
+        shutil.copy(problem_folder / "description.md", new_path / "description.md")
+        shutil.copy(problem_folder / "solution.txt", new_path / f"solution.{ext}")
 
+        print(f"Saved: {qid}-{slug} ({lang})")
 
 def lang_to_extension(lang):
     mapping = {
@@ -74,5 +77,4 @@ def lang_to_extension(lang):
     }
     return mapping.get(lang.lower())
 
-
-sync_all_accepted_problems()
+restructure_exports()
