@@ -43,13 +43,13 @@ my_solutions/
 
 fork한 레포지토리의 Secrets에 다음 값을 등록합니다:
 
-| 이름                 | 설명                           |
-| ------------------ | ---------------------------- |
-| `LEETCODE_SESSION` | LeetCode 로그인 세션 쿠키           |
-| `CSRF_TOKEN`       | LeetCode 요청에 필요한 CSRF 토큰     |
-| `LEETCODE_PAT`     | GitHub Personal Access Token |
-| `GIT_USER_NAME`    | 커미트 시 사용할 이름                 |
-| `GIT_USER_EMAIL`   | 커미트 시 사용할 이메일                |
+| 이름                 | 설명                           | 출처                                                      |
+| ------------------ |------------------------------|---------------------------------------------------------|
+| `LEETCODE_SESSION` | LeetCode 로그인 세션 쿠키           | [leetcode](https://leetcode.com)                        |
+| `CSRF_TOKEN`       | LeetCode 요청에 필요한 CSRF 토큰     | [leetcode](https://leetcode.com)                        |
+| `LEETCODE_PAT`     | GitHub Personal Access Token | [GitHub-dev-settings](https://github.com/settings/apps) |
+| `GIT_USER_NAME`    | Commit 시 사용할 이름              | Git                                                     |
+| `GIT_USER_EMAIL`   | Commit 시 사용할 이메일             | Git                                                     |
 
 > 세션/토큰은 [브라우저 개발자 도구(F12)](https://leetcode.com)에서 케이크 값을 확인해서 등록하세요.
 
