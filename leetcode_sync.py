@@ -1,24 +1,78 @@
 import os
 import subprocess
+import json
+from pathlib import Path
 
-# GitHub Secrets에서 세션 쿠키와 토큰을 환경 변수로 받기
-LEETCODE_SESSION = os.getenv('LEETCODE_SESSION')
-CSRF_TOKEN = os.getenv('CSRF_TOKEN')
+LEETCODE_SESSION = os.getenv("LEETCODE_SESSION")
+CSRF_TOKEN = os.getenv("CSRF_TOKEN")
 
 if not LEETCODE_SESSION or not CSRF_TOKEN:
     raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
 
 root_dir = "my_solutions"
-if not os.path.exists(root_dir):
-    os.makedirs(root_dir)
 
-# `leetcode-export` 명령어 실행 예시 (자동화된 풀이 코드 가져오기)
-def sync_leetcode_problems():
-    for lang in ["python", "pythondata", "mysql"]:
-        dir_path = f"{root_dir}/{lang}"
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        os.system(f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' --only-accepted --language={lang} --problem-folder-name '{dir_path}'")
+# debug.log 초기화
+with open("debug.log", "w"):
+    pass
 
-# 문제 동기화 실행
-sync_leetcode_problems()
+def sync_all_accepted_problems():
+    temp_output = "submissions.json"
+    cmd = (
+        f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' "
+        f"--only-accepted --format=json --output={temp_output}"
+    )
+    result = os.system(cmd)
+    if result != 0 or not os.path.exists(temp_output):
+        raise RuntimeError("Failed to export LeetCode problems")
+
+    with open(temp_output, "r", encoding="utf-8") as f:
+        submissions = json.load(f)
+
+    for sub in submissions:
+        lang = sub["lang"]
+        ext = lang_to_extension(lang)
+        if not ext:
+            print(f"Skipping unsupported language: {lang}")
+            continue
+
+        qid = sub.get("frontendQuestionId") or sub.get("questionFrontendId") or "unknown"
+        title_slug = sub["titleSlug"]
+        folder_name = f"{qid}-{title_slug}"
+
+        dir_path = Path(root_dir) / lang / folder_name
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        with open(dir_path / "description.md", "w", encoding="utf-8") as f:
+            f.write(sub.get("translatedContent") or sub.get("content") or "")
+
+        with open(dir_path / f"solution.{ext}", "w", encoding="utf-8") as f:
+            f.write(sub["code"])
+
+        print(f"Saved: {folder_name} ({lang})")
+
+    os.remove(temp_output)
+
+
+def lang_to_extension(lang):
+    mapping = {
+        "python": "py",
+        "python3": "py",
+        "mysql": "sql",
+        "cpp": "cpp",
+        "java": "java",
+        "c": "c",
+        "javascript": "js",
+        "typescript": "ts",
+        "csharp": "cs",
+        "go": "go",
+        "ruby": "rb",
+        "rust": "rs",
+        "kotlin": "kt",
+        "swift": "swift",
+        "scala": "scala",
+        "bash": "sh"
+    }
+    return mapping.get(lang.lower())
+
+
+sync_all_accepted_problems()
