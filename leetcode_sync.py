@@ -1,3 +1,28 @@
+import os
+import shutil
+from pathlib import Path
+
+LEETCODE_SESSION = os.getenv("LEETCODE_SESSION")
+CSRF_TOKEN = os.getenv("CSRF_TOKEN")
+
+if not LEETCODE_SESSION or not CSRF_TOKEN:
+    raise RuntimeError("LeetCode session cookie or CSRF token not provided.")
+
+# 원시 export 폴더
+raw_dir = Path("leetcode_raw_export")
+if raw_dir.exists():
+    shutil.rmtree(raw_dir)
+raw_dir.mkdir()
+
+# export 실행 (언어 필터 없음)
+os.system(
+    f"leetcode-export --cookies 'csrftoken={CSRF_TOKEN};LEETCODE_SESSION={LEETCODE_SESSION}' "
+    f"--only-accepted --folder {raw_dir}"
+)
+
+# 최종 목적지
+root_dir = Path("my_solutions")
+
 def restructure_exports():
     for problem_folder in raw_dir.iterdir():
         if not problem_folder.is_dir():
@@ -65,3 +90,5 @@ def extension_to_language(ext):
         "sh": "bash"
     }
     return mapping.get(ext.lower())
+
+restructure_exports()
