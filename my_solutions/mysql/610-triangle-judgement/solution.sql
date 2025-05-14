@@ -1,6 +1,8 @@
 # Write your MySQL query statement below
-SELECT 
-  x, y, z,
-  IF(2 * GREATEST(x, y, z) < x + y + z, 'Yes', 'No') AS triangle
-FROM Triangle;
+SELECT x, y, z, 
+CASE
+    WHEN 2 * GREATEST(x, y, z) < x + y + z
+    THEN "Yes" ELSE "No"
+    END AS triangle
+FROM Triangle
 
